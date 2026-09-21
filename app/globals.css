@@ -91,6 +91,24 @@ button {
   margin-right: 6px;
 }
 
+/* 버튼처럼 보여야 하는 <a> 태그(파일 내보내기 링크 등)에도 같이 씁니다. */
+a.btn-primary,
+a.btn-secondary {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.notice-banner {
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  color: #92400e;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
 .plan-item {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -142,4 +160,10 @@ button {
   color: #b91c1c;
   font-size: 13px;
   margin-top: 6px;
+}
+
+.sort-caption {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 4px 0 16px;
 }

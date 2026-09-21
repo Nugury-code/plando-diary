@@ -1,5 +1,7 @@
 import { updatePlan } from "../../../../lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function PUT(request, context) {
   const { id: idParam } = await context.params;
   const id = Number(idParam);

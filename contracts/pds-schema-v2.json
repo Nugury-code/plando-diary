@@ -1,0 +1,106 @@
+{
+  "schema_name": "plando-diary-personal-data-schema",
+  "version": "2.0.0",
+  "description": "플랜두씨 다이어리(과제 6)의 최종 데이터베이스 구조. 계획(Plan) → 할 일(Do) → 실행 기록·돌아보기(See)가 실제 SQLite 데이터베이스(data/plando.db, node:sqlite)에 저장되는 표·관계·날짜 규칙을 적어 둡니다.",
+  "storage": {
+    "engine": "SQLite (Node.js 내장 node:sqlite, DatabaseSync)",
+    "file": "data/plando.db",
+    "note": "브라우저(localStorage 등)에는 아무 것도 저장하지 않습니다. 새로고침해도 값이 그대로인 이유는 매번 이 파일에서 다시 읽어오기 때문입니다."
+  },
+  "date_time_rules": {
+    "created_at_updated_at_saved_at": "ISO 8601, UTC (new Date().toISOString() 결과, 예: 2026-09-21T06:38:45.057Z). 화면에는 이 값을 그대로 보여줍니다.",
+    "deadline": "시간 없이 날짜만 (YYYY-MM-DD). 시간대 정보가 없는 순수 달력 날짜이며, 문자열끼리 비교합니다.",
+    "start_time_end_time": "실행 기록의 시작·끝 시각은 <input type=datetime-local> 값(YYYY-MM-DDTHH:mm)을 사용자가 입력한 그대로 저장합니다. 시간대 표시가 없는 '벽시계 시각'입니다.",
+    "actual_hours_계산": "actual_hours = (end_time - start_time)을 시간 단위로 바꾼 값, 소수점 둘째 자리에서 반올림. start/end를 같은 방식으로 Date 파싱하기 때문에 서버가 어느 시간대에서 돌아가든 '걸린 시간' 계산 자체는 항상 정확합니다.",
+    "오늘_판정_기준": "카드 4 돌아보기의 '지연' 여부는 항상 서울(Asia/Seoul) 기준 오늘 날짜와 deadline을 비교해서 정합니다 (Intl.DateTimeFormat(..., { timeZone: 'Asia/Seoul' })). 서버를 다른 시간대 컴퓨터에 배포해도 지연 판정 기준은 바뀌지 않습니다.",
+    "단위": "예상 시간·실제 시간은 전부 '시간(hour)' 단위이며, 저장할 때와 화면에 보여줄 때 항상 같은 단위를 씁니다."
+  },
+  "tables": [
+    {
+      "name": "plans",
+      "description": "지금 실제로 세운 계획 한 줄. 카드 1.",
+      "columns": [
+        { "name": "id", "type": "INTEGER", "pk": true },
+        { "name": "title", "type": "TEXT", "nullable": false },
+        { "name": "start_date", "type": "TEXT (YYYY-MM-DD)", "nullable": false },
+        { "name": "end_date", "type": "TEXT (YYYY-MM-DD)", "nullable": false },
+        { "name": "priority", "type": "TEXT", "enum": ["상", "중", "하"] },
+        { "name": "success_criteria", "type": "TEXT", "nullable": false },
+        { "name": "estimated_hours", "type": "REAL (시간 단위)", "nullable": false },
+        {
+          "name": "previous_lesson",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "카드 4 돌아보기에서 넘어온 '고칠 점' 한 줄. 없으면 NULL."
+        },
+        { "name": "created_at", "type": "TEXT (ISO 8601 UTC)", "nullable": false },
+        { "name": "updated_at", "type": "TEXT (ISO 8601 UTC)", "nullable": false }
+      ]
+    },
+    {
+      "name": "plan_versions",
+      "description": "계획을 고치기 '직전' 값의 스냅샷. 수정할 때마다 한 줄씩 쌓여서 이전 모습을 그대로 되짚어 볼 수 있습니다.",
+      "columns": [
+        { "name": "id", "type": "INTEGER", "pk": true },
+        { "name": "plan_id", "type": "INTEGER", "fk": "plans.id" },
+        { "name": "version_no", "type": "INTEGER", "description": "그 계획 안에서 1부터 순서대로 증가" },
+        { "name": "title", "type": "TEXT" },
+        { "name": "start_date", "type": "TEXT (YYYY-MM-DD)" },
+        { "name": "end_date", "type": "TEXT (YYYY-MM-DD)" },
+        { "name": "priority", "type": "TEXT" },
+        { "name": "success_criteria", "type": "TEXT" },
+        { "name": "estimated_hours", "type": "REAL" },
+        { "name": "saved_at", "type": "TEXT (ISO 8601 UTC)" }
+      ]
+    },
+    {
+      "name": "todos",
+      "description": "계획 하나에 여러 개 딸리는 할 일. 카드 2.",
+      "columns": [
+        { "name": "id", "type": "INTEGER", "pk": true },
+        { "name": "plan_id", "type": "INTEGER", "fk": "plans.id" },
+        { "name": "title", "type": "TEXT", "nullable": false },
+        { "name": "deadline", "type": "TEXT (YYYY-MM-DD)", "nullable": true },
+        { "name": "priority", "type": "TEXT", "enum": ["상", "중", "하"] },
+        { "name": "tags", "type": "TEXT", "description": "쉼표로 구분한 태그 원문 그대로 저장" },
+        { "name": "estimated_hours", "type": "REAL (시간 단위)", "nullable": true },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "enum": ["진행중", "완료"],
+          "default": "진행중",
+          "description": "'완료'로 바꾸는 유일한 방법은 /api/todos/[id]/complete 뿐입니다. 직접 status만 '완료'로 PUT 하는 요청은 서버가 거절합니다."
+        },
+        { "name": "created_at", "type": "TEXT (ISO 8601 UTC)" },
+        { "name": "updated_at", "type": "TEXT (ISO 8601 UTC)" }
+      ]
+    },
+    {
+      "name": "execution_logs",
+      "description": "할 일을 완료로 바꿀 때 같이 남는, 실제로 한 일의 기록. 카드 3.",
+      "columns": [
+        { "name": "id", "type": "INTEGER", "pk": true },
+        { "name": "todo_id", "type": "INTEGER", "fk": "todos.id" },
+        { "name": "start_time", "type": "TEXT (YYYY-MM-DDTHH:mm, 시간대 표시 없음)" },
+        { "name": "end_time", "type": "TEXT (YYYY-MM-DDTHH:mm, 시간대 표시 없음)" },
+        { "name": "actual_hours", "type": "REAL (시간 단위, 소수점 둘째 자리 반올림)" },
+        { "name": "blocked_reason", "type": "TEXT", "nullable": true, "description": "막힌 이유가 없으면 빈 문자열" },
+        { "name": "created_at", "type": "TEXT (ISO 8601 UTC)" }
+      ]
+    }
+  ],
+  "relationships": [
+    { "from": "todos.plan_id", "to": "plans.id", "type": "many-to-one" },
+    { "from": "plan_versions.plan_id", "to": "plans.id", "type": "many-to-one" },
+    { "from": "execution_logs.todo_id", "to": "todos.id", "type": "many-to-one" }
+  ],
+  "idempotency_rule": {
+    "target": "할 일 완료 처리 (POST /api/todos/[id]/complete)",
+    "guard": "UPDATE todos SET status = '완료', ... WHERE id = ? AND status != '완료'",
+    "설명": "이미 완료 상태인 할 일에 같은(또는 다른) 완료 요청이 다시 와도, 이 UPDATE의 영향 받은 행 수(changes)가 0이면 execution_logs에 새 줄을 넣지 않습니다. 버튼을 잠그는 화면 쪽 잠금이 아니라 데이터베이스 자체의 조건문이 중복을 막는 실질적인 장치입니다."
+  },
+  "review_aggregation_rule": {
+    "target": "GET /api/reviews",
+    "설명": "돌아보기 화면의 계획 수·완료 수·지연 수·막힘 수·예상/실제 시간 합계는 저장해 두지 않고, 요청이 올 때마다 todos·execution_logs에서 다시 계산합니다. 그래서 숫자가 항상 지금 기록과 정확히 같고, 숫자를 누르면 그 계산에 쓰인 할 일·실행 기록 목록을 그대로 보여줄 수 있습니다."
+  }
+}
