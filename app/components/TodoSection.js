@@ -19,7 +19,7 @@ const EMPTY_FILTERS = {
   sort: "deadline_asc",
 };
 
-export default function TodoSection({ plansVersion }) {
+export default function TodoSection({ plansVersion, onDataChanged }) {
   const [plans, setPlans] = useState([]);
   const [todos, setTodos] = useState([]);
   const [sortOptions, setSortOptions] = useState({});
@@ -98,6 +98,7 @@ export default function TodoSection({ plansVersion }) {
     }
     setNewForm({ ...EMPTY_FORM, plan_id: newForm.plan_id });
     await loadTodos(filters);
+    onDataChanged?.();
   }
 
   function startEdit(todo) {
@@ -131,6 +132,7 @@ export default function TodoSection({ plansVersion }) {
     }
     cancelEdit();
     await loadTodos(filters);
+    onDataChanged?.();
   }
 
   // "완료"는 여기서 바로 안 바꾸고, 시작/끝 시각을 입력하는 폼을 엽니다.
@@ -143,6 +145,7 @@ export default function TodoSection({ plansVersion }) {
         body: JSON.stringify({ status: "진행중" }),
       });
       await loadTodos(filters);
+      onDataChanged?.();
       return;
     }
     setCompletingId(todo.id);
@@ -177,6 +180,7 @@ export default function TodoSection({ plansVersion }) {
       }
       setCompletingId(null);
       await loadTodos(filters);
+      onDataChanged?.();
     } finally {
       setCompleting(false);
     }
@@ -185,12 +189,13 @@ export default function TodoSection({ plansVersion }) {
   async function handleDelete(id) {
     await fetch(`/api/todos/${id}`, { method: "DELETE" });
     await loadTodos(filters);
+    onDataChanged?.();
   }
 
   return (
     <>
       <div className="card">
-        <h2>새 할 일 만들기</h2>
+        <h2>✅ 새 할 일 만들기</h2>
         {plans.length === 0 ? (
           <div className="empty">
             먼저 위에서 계획을 하나 만들어야 할 일을 넣을 수 있어요.
@@ -279,7 +284,7 @@ export default function TodoSection({ plansVersion }) {
       </div>
 
       <div className="card">
-        <h2>할 일 목록</h2>
+        <h2>📌 할 일 목록</h2>
 
         <div className="row2">
           <div className="field">
@@ -352,7 +357,12 @@ export default function TodoSection({ plansVersion }) {
           const isEditing = editingId === todo.id;
           const isCompleting = completingId === todo.id;
           return (
-            <div className="plan-item" key={todo.id}>
+            <div
+              className={
+                todo.status === "완료" ? "plan-item plan-item-done" : "plan-item"
+              }
+              key={todo.id}
+            >
               {!isEditing && (
                 <>
                   <div className="plan-title">

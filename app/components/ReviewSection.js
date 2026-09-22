@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 // onSendLesson: 여기서 정한 "고칠 점" 한 줄을 AppShell을 거쳐
 // 위에 있는 "새 계획 만들기" 폼으로 보냅니다.
-export default function ReviewSection({ onSendLesson }) {
+export default function ReviewSection({ onSendLesson, plansVersion, dataVersion }) {
   const [plans, setPlans] = useState([]);
   const [planId, setPlanId] = useState("");
   const [start, setStart] = useState("");
@@ -38,15 +38,18 @@ export default function ReviewSection({ onSendLesson }) {
     setLoading(false);
   }
 
+  // 계획 목록(거르기용 드롭다운)은 plansVersion이 바뀔 때마다 다시 불러옵니다.
   useEffect(() => {
     loadPlans();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [plansVersion]);
 
+  // 숫자 자체는 필터가 바뀌거나, 다른 카드에서 할 일을 만들고 고치고
+  // 완료로 바꿀 때(dataVersion)마다 다시 불러옵니다.
   useEffect(() => {
     loadReview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planId, start, end]);
+  }, [planId, start, end, dataVersion]);
 
   function toggleDetail(key) {
     setDetailFilter((prev) => (prev === key ? null : key));
@@ -69,7 +72,7 @@ export default function ReviewSection({ onSendLesson }) {
 
   return (
     <div className="card">
-      <h2>돌아보기</h2>
+      <h2>📊 돌아보기</h2>
       <p className="sort-caption">
         숫자를 누르면 그 숫자가 어느 할 일 기록에서 나왔는지 바로 아래에 펼쳐집니다.
         완료율만 보지 말고, 예상 시간과 실제 시간이 얼마나 차이 나는지도 같이 보세요.

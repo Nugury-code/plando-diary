@@ -125,7 +125,7 @@ export default function PlanSection({ pendingLesson, onLessonUsed, onPlansChange
   return (
     <>
       <div className="card" ref={formRef}>
-        <h2>새 계획 만들기</h2>
+        <h2>🗓️ 새 계획 만들기</h2>
         <form onSubmit={handleCreate}>
           <div className="field">
             <label>계획 이름</label>
@@ -221,7 +221,7 @@ export default function PlanSection({ pendingLesson, onLessonUsed, onPlansChange
       </div>
 
       <div className="card">
-        <h2>내 계획 목록</h2>
+        <h2>📋 내 계획 목록</h2>
         {loading && <div className="empty">불러오는 중...</div>}
         {!loading && plans.length === 0 && (
           <div className="empty">아직 만든 계획이 없습니다. 위에서 하나 만들어보세요.</div>
