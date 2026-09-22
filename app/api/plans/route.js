@@ -1,4 +1,5 @@
 import { listPlans, createPlan } from "../../../lib/db";
+import { getRequestUser, unauthorized } from "../../../lib/auth";
 
 // 이 라우트는 요청(request) 값을 안 쓰기 때문에, 그냥 두면 Next.js가
 // "결과가 항상 똑같겠구나" 하고 빌드할 때 미리 한 번 실행해 버립니다.
@@ -7,12 +8,18 @@ import { listPlans, createPlan } from "../../../lib/db";
 // 명시적으로 못 박아 둡니다.
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const plans = listPlans();
+export async function GET(request) {
+  const user = getRequestUser(request);
+  if (!user) return unauthorized();
+
+  const plans = listPlans(user.id);
   return Response.json({ plans });
 }
 
 export async function POST(request) {
+  const user = getRequestUser(request);
+  if (!user) return unauthorized();
+
   const body = await request.json();
 
   const required = [
@@ -36,7 +43,7 @@ export async function POST(request) {
     }
   }
 
-  const plan = createPlan({
+  const plan = createPlan(user.id, {
     title: String(body.title),
     start_date: String(body.start_date),
     end_date: String(body.end_date),

@@ -1,10 +1,14 @@
 import { updateTodo, revertTodoToInProgress, deleteTodo } from "../../../../lib/db";
+import { getRequestUser, unauthorized } from "../../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
 // 내용 수정과, "진행중으로 되돌리기"를 함께 처리합니다.
 // "완료로 바꾸기"는 실행 기록이 같이 필요해서 /complete 엔드포인트를 따로 씁니다.
 export async function PUT(request, context) {
+  const user = getRequestUser(request);
+  if (!user) return unauthorized();
+
   const { id: idParam } = await context.params;
   const id = Number(idParam);
   const body = await request.json();
@@ -19,7 +23,7 @@ export async function PUT(request, context) {
         { status: 400 }
       );
     }
-    const todo = revertTodoToInProgress(id);
+    const todo = revertTodoToInProgress(id, user.id);
     if (!todo) {
       return Response.json({ error: "할 일을 찾을 수 없습니다." }, { status: 404 });
     }
@@ -36,7 +40,7 @@ export async function PUT(request, context) {
     }
   }
 
-  const todo = updateTodo(id, {
+  const todo = updateTodo(id, user.id, {
     title: String(body.title),
     deadline: body.deadline ? String(body.deadline) : null,
     priority: String(body.priority),
@@ -52,9 +56,12 @@ export async function PUT(request, context) {
 }
 
 export async function DELETE(request, context) {
+  const user = getRequestUser(request);
+  if (!user) return unauthorized();
+
   const { id: idParam } = await context.params;
   const id = Number(idParam);
-  const ok = deleteTodo(id);
+  const ok = deleteTodo(id, user.id);
   if (!ok) {
     return Response.json({ error: "할 일을 찾을 수 없습니다." }, { status: 404 });
   }

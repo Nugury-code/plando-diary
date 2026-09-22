@@ -233,3 +233,31 @@ a.btn-secondary {
   margin: 6px 0 18px;
   line-height: 1.6;
 }
+
+.account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f1f0fb;
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #362f78;
+  font-weight: 600;
+}
+
+.auth-card {
+  max-width: 360px;
+  margin: 40px auto;
+}
+
+.auth-card .sort-caption {
+  text-align: center;
+}
+
+.auth-card .btn-secondary {
+  padding: 2px 8px;
+  font-size: 12.5px;
+  margin: 0;
+}

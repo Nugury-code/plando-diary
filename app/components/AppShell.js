@@ -26,8 +26,8 @@ export default function AppShell() {
   return (
     <>
       <div className="notice-banner">
-        지금은 로그인이 없어 링크를 아는 사람은 누구나 볼 수 있습니다. 남이
-        봐도 괜찮은 내용만 넣으세요.
+        이 화면은 로그인한 내 계정에만 보입니다. 로그인하지 않고 이 주소를
+        열면 자료 대신 로그인 화면이 나옵니다.
       </div>
 
       <a className="btn-secondary" href="/api/export">

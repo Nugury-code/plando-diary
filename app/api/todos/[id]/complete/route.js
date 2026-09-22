@@ -1,10 +1,14 @@
 import { completeTodo } from "../../../../../lib/db";
+import { getRequestUser, unauthorized } from "../../../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
 // 할 일을 완료로 바꾸면서 실행 기록(시작·끝·막힌 이유)을 함께 저장합니다.
 // 이미 완료 상태라면(연달아 두 번 눌러도) 기록을 새로 만들지 않습니다.
 export async function POST(request, context) {
+  const user = getRequestUser(request);
+  if (!user) return unauthorized();
+
   const { id: idParam } = await context.params;
   const id = Number(idParam);
   const body = await request.json();
@@ -25,7 +29,7 @@ export async function POST(request, context) {
     );
   }
 
-  const result = completeTodo(id, {
+  const result = completeTodo(id, user.id, {
     start_time: body.start_time,
     end_time: body.end_time,
     blocked_reason: body.blocked_reason || "",
