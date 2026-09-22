@@ -19,7 +19,7 @@ const EMPTY_FILTERS = {
   sort: "deadline_asc",
 };
 
-export default function TodoSection() {
+export default function TodoSection({ plansVersion }) {
   const [plans, setPlans] = useState([]);
   const [todos, setTodos] = useState([]);
   const [sortOptions, setSortOptions] = useState({});
@@ -65,8 +65,14 @@ export default function TodoSection() {
     setLoading(false);
   }
 
+  // 계획 목록은 AppShell이 보내는 plansVersion이 바뀔 때마다 다시 불러옵니다.
+  // (처음 마운트될 때도 한 번 실행되어 초기 목록을 불러옵니다.)
   useEffect(() => {
     loadPlans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plansVersion]);
+
+  useEffect(() => {
     loadTodos(EMPTY_FILTERS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

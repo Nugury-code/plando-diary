@@ -15,7 +15,7 @@ const EMPTY_FORM = {
 // pendingLesson: 카드 4 돌아보기에서 "다음 계획에 반영하기"를 눌렀을 때
 // 여기로 전달되는 고칠 점 한 줄. onLessonUsed: 그 값을 새 계획에 넣고
 // 저장한 뒤 부모(AppShell)에게 "다 썼다"고 알려서 다시 비우게 합니다.
-export default function PlanSection({ pendingLesson, onLessonUsed }) {
+export default function PlanSection({ pendingLesson, onLessonUsed, onPlansChanged }) {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newForm, setNewForm] = useState(EMPTY_FORM);
@@ -67,6 +67,7 @@ export default function PlanSection({ pendingLesson, onLessonUsed }) {
     setNewForm(EMPTY_FORM);
     if (hadLesson) onLessonUsed?.();
     await loadPlans();
+    onPlansChanged?.();
   }
 
   function startEdit(plan) {
