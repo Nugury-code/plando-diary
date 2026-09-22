@@ -20,6 +20,11 @@ export default function AuthGate() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // 회원 탈퇴는 되돌릴 수 없어서, 버튼 한 번으로 바로 지우지 않고
+  // "정말 지울까요?" 확인 화면을 한 번 더 거치게 합니다.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   async function checkSession() {
     setChecking(true);
     const res = await fetch("/api/auth/me");
@@ -68,6 +73,19 @@ export default function AuthGate() {
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
+  }
+
+  // 회원 탈퇴: 계정과 그 계정의 계획·할 일·실행 기록을 전부 지웁니다.
+  // 되돌릴 수 없어서, confirmingDelete 화면에서 한 번 더 확인합니다.
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    try {
+      await fetch("/api/auth/account", { method: "DELETE" });
+      setUser(null);
+      setConfirmingDelete(false);
+    } finally {
+      setDeleting(false);
+    }
   }
 
   if (checking) {
@@ -160,10 +178,44 @@ export default function AuthGate() {
     <>
       <div className="account-bar">
         <span>{user.email} 로 로그인함</span>
-        <button className="btn-secondary" onClick={handleLogout}>
-          로그아웃
-        </button>
+        <span>
+          <button className="btn-secondary" onClick={handleLogout}>
+            로그아웃
+          </button>
+          <button
+            className="btn-secondary btn-danger"
+            onClick={() => setConfirmingDelete(true)}
+          >
+            회원 탈퇴
+          </button>
+        </span>
       </div>
+
+      {confirmingDelete && (
+        <div className="card">
+          <h2>정말 탈퇴할까요?</h2>
+          <p className="sort-caption">
+            {user.email} 계정과, 이 계정으로 만든 계획·할 일·실행 기록이
+            전부 지워집니다. 되돌릴 수 없습니다. 자료를 남기고 싶다면
+            먼저 위의 "내 자료 전체 내보내기"로 받아 두세요.
+          </p>
+          <button
+            className="btn-danger"
+            onClick={handleDeleteAccount}
+            disabled={deleting}
+          >
+            {deleting ? "탈퇴하는 중..." : "네, 계정과 자료를 지웁니다"}
+          </button>
+          <button
+            className="btn-secondary"
+            onClick={() => setConfirmingDelete(false)}
+            disabled={deleting}
+          >
+            취소
+          </button>
+        </div>
+      )}
+
       <AppShell />
     </>
   );
