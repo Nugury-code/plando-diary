@@ -265,7 +265,7 @@ export default function TodoSection({ plansVersion, onDataChanged }) {
                 <input
                   type="number"
                   min="0"
-                  step="0.5"
+                  step="0.01"
                   placeholder="예: 3"
                   value={newForm.estimated_hours}
                   onChange={(e) =>
