@@ -265,7 +265,7 @@ export default function TodoSection({ plansVersion, onDataChanged }) {
                 <input
                   type="number"
                   min="0"
-                  step="0.5"
+                  step="0.01"
                   placeholder="예: 3"
                   value={newForm.estimated_hours}
                   onChange={(e) =>
@@ -353,9 +353,10 @@ export default function TodoSection({ plansVersion, onDataChanged }) {
           <div className="empty">조건에 맞는 할 일이 없습니다.</div>
         )}
 
-        {todos.map((todo) => {
+        {todos.map((todo, idx) => {
           const isEditing = editingId === todo.id;
           const isCompleting = completingId === todo.id;
+          const displayNo = idx + 1;
           return (
             <div
               className={
@@ -366,7 +367,7 @@ export default function TodoSection({ plansVersion, onDataChanged }) {
               {!isEditing && (
                 <>
                   <div className="plan-title">
-                    {todo.status === "완료" ? "✅ " : ""}#{todo.id} {todo.title}
+                    {todo.status === "완료" ? "✅ " : ""}#{displayNo} {todo.title}
                   </div>
                   <div className="plan-meta">
                     계획: {todo.plan_title}
@@ -494,7 +495,7 @@ export default function TodoSection({ plansVersion, onDataChanged }) {
                       <input
                         type="number"
                         min="0"
-                        step="0.5"
+                        step="0.01"
                         value={editForm.estimated_hours}
                         onChange={(e) =>
                           setEditForm({ ...editForm, estimated_hours: e.target.value })
