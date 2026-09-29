@@ -137,3 +137,6 @@ dist
 
 # plando-diary: 로컬 SQLite 데이터 (실제 계획/기록이 들어있는 파일, 기기별로 다름)
 /data
+
+# plando-diary: 챗에서 보낸 파일이 자동 저장되는 폴더 (포폴/저장소용 파일은 docs/ 에 따로 보관)
+/Claude outputs
